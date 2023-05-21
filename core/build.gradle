@@ -35,8 +35,6 @@ android {
 
 dependencies {
     api 'androidx.core:core-ktx:1.10.1'
-    api 'androidx.appcompat:appcompat:1.6.1'
-    api 'com.google.android.material:material:1.9.0'
     api 'io.github.apollokwok:kt-util:1.0.6'
     //noinspection GradleDependency
     api "org.jetbrains.kotlin:kotlin-reflect:$kt_version"

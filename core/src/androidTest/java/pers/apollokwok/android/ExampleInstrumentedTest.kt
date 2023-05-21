@@ -14,11 +14,12 @@ import org.junit.Assert.*
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 @RunWith(AndroidJUnit4::class)
-class ExampleInstrumentedTest {
+class MLog : KLog("Apollo", BuildConfig.DEBUG) {
     @Test
     fun useAppContext() {
-        // Context of the app under test.
-        val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("pers.apollokwok.android.test", appContext.packageName)
+        d(1,2)
+        _d("s", 1, 2, 3)
+
+        i(3)
     }
 }
