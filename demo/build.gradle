@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -52,6 +54,10 @@ dependencies {
 
 //region apollokwok: android-view
 android.lintOptions.disable 'NonConstantResourceId'
+
+tasks.withType(KotlinCompile).configureEach{
+    kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
+}
 
 dependencies {
     implementation 'io.github.apollokwok:kt-util:1.0.6'
