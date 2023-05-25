@@ -1,15 +1,7 @@
 package pers.apollokwok.androidutil.demo.ui.main
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.flow.flowOf
 import pers.apollokwok.android.view.KFragment
-import pers.apollokwok.android.view.collectOnResume
-import pers.apollokwok.androidutil.demo.MLog
 import pers.apollokwok.androidutil.demo.R
 import pers.apollokwok.androidutil.demo.databinding.FragmentMainBinding
 

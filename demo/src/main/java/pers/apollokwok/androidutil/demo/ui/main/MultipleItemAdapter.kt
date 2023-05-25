@@ -19,7 +19,7 @@ class MultipleItemAdapter(
                 holder: ViewBindingHolder<ItemTealBinding>
             ) {
                 holder.binding.tv.setOnClickListener {
-                    MLog.d("Teal")
+                    MLog("Teal")
                 }
             }
 
@@ -36,7 +36,7 @@ class MultipleItemAdapter(
             override fun onViewBindingHolderCreated(
                 holder: ViewBindingHolder<ItemPurpleBinding>
             ) {
-                MLog.d("Purple")
+                MLog("Purple")
             }
 
             override fun onBindViewBindingHolder(

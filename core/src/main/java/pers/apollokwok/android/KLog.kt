@@ -3,6 +3,9 @@
 package pers.apollokwok.android
 
 import android.util.Log
+import android.util.Log.getStackTraceString
+import pers.apollokwok.ktutil.updateIf
+import java.lang.Exception
 
 /**
  * A log util extended from android logcat.
@@ -18,48 +21,56 @@ public abstract class KLog(
     private val defaultTag: String,
     private val isDebug: Boolean,
 ) {
-    private fun log(priority: Int, tag: String, info: Array<out Any?>){
+    public operator fun invoke(
+        vararg info: Any?,
+        tag: String = defaultTag,
+        e: Exception? = null,
+    ){
+        if(!isDebug) return
+
+        val msg = info.joinToString(
+            separator = ", ",
+            postfix =
+                if (e == null) {
+                    val trace = Exception().stackTrace[2].toString()
+                    val header = trace.substringBefore("$")
+                    val tail = "(" + trace.substringAfter("(")
+                    "\n$header$tail"
+                } else
+                    "\n" + getStackTraceString(e)
+        )
+
+        Log.println(Log.DEBUG, tag, msg)
+    }
+
+    private fun log(
+        priority: Int,
+        info: Array<out Any?>,
+        tag: String,
+        e: Exception?,
+    ) {
+        val msg = info.joinToString(", ")
+            .updateIf({ e != null }) {
+                it + '\n' + getStackTraceString(e)
+            }
+
+        Log.println(priority, tag, msg)
+    }
+
+    public fun v(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
         if (isDebug)
-            Log.println(priority, tag, info.joinToString(", "))
+            log(Log.VERBOSE, info, tag, e)
     }
 
-    public fun v(vararg info: Any?){
-        log(Log.VERBOSE, defaultTag, info)
+    public fun i(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
+        log(Log.INFO, info, tag, e)
     }
 
-    public fun d(vararg info: Any?){
-        log(Log.DEBUG, defaultTag, info)
+    public fun w(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
+        log(Log.WARN, info, tag, e)
     }
 
-    public fun i(vararg info: Any?){
-        log(Log.INFO, defaultTag, info)
-    }
-
-    public fun w(vararg info: Any?){
-        log(Log.WARN, defaultTag, info)
-    }
-
-    public fun e(vararg info: Any?){
-        log(Log.ERROR, defaultTag, info)
-    }
-
-    public fun _v(tag: String, vararg info: Any?){
-        log(Log.VERBOSE, tag, info)
-    }
-
-    public fun _d(tag: String, vararg info: Any?){
-        log(Log.DEBUG, tag, info)
-    }
-
-    public fun _i(tag: String, vararg info: Any?){
-        log(Log.INFO, tag, info)
-    }
-
-    public fun _w(tag: String, vararg info: Any?){
-        log(Log.WARN, tag, info)
-    }
-
-    public fun _e(tag: String, vararg info: Any?){
-        log(Log.ERROR, tag, info)
+    public fun e(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
+        log(Log.ERROR, info, tag, e)
     }
 }
