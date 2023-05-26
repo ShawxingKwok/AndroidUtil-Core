@@ -4,6 +4,7 @@ package pers.apollokwok.android
 
 import android.util.Log
 import android.util.Log.getStackTraceString
+import androidx.core.app.NotificationCompatSideChannelService
 import pers.apollokwok.ktutil.updateIf
 
 /**
@@ -50,12 +51,12 @@ public abstract class KLog(
     }
 
     public fun e(vararg info: Any?, tag: String = defaultTag, ex: Exception? = null){
-        val msg = info
-            .joinToString()
-            .updateIf({ ex != null }){
-                it + "\n" + getStackTraceString(ex)
-            }
-
-        Log.e(tag, msg)
+        if (ex != null)
+            Log.e(tag, info.joinToString(), ex)
+        else {
+            val newEx = Exception(info.joinToString())
+            val trace = getStackTraceString(newEx)
+            Log.e(tag, trace)
+        }
     }
 }

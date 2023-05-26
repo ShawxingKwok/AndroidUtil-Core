@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
 class MLog : KLog("Apollo", BuildConfig.DEBUG) {
     @Test
     fun a() {
-        Log.d(null, "d")
-        Log.d("Apollo", "d")
+        e("e", ex = Exception("FAM"))
+        e("d")
     }
 }
