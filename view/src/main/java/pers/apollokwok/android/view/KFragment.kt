@@ -54,18 +54,6 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
     private var _binding: VB? = null
     protected val binding: VB get() = _binding!!
 
-    private val functionIDPairs = this::class
-        .declaredMemberFunctions
-        .mapNotNull { function ->
-            val id = function.findAnnotation<OnClick>()?.viewId ?: return@mapNotNull null
-            require(function.typeParameters.none() && function.parameters.size == 1){
-                "${function.name} is annotated with OnClick and should own no parameters " +
-                "except its owner instance."
-            }
-            function.isAccessible = true
-            function to id
-        }
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         // set binding
         @Suppress("UNCHECKED_CAST")
@@ -79,14 +67,8 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
             )
             .invoke(null, inflater, container, false) as VB
 
-        // set onClick
-        functionIDPairs.forEach {(function, id) ->
-            val view = binding.root.findViewById<View>(id)
+        setAnnotatedOnClickListeners()
 
-            view.setOnClickListener {
-                function.call(this)
-            }
-        }
         return binding.root
     }
 
@@ -148,4 +130,26 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
     @Target(AnnotationTarget.FUNCTION)
     @SuppressLint("NonConstantResourceId")
     public annotation class OnClick(@IdRes val viewId: Int)
+
+    private val functionIDPairs = this::class
+        .declaredMemberFunctions
+        .mapNotNull { function ->
+            val id = function.findAnnotation<OnClick>()?.viewId ?: return@mapNotNull null
+            require(function.typeParameters.none() && function.parameters.size == 1){
+                "${function.name} is annotated with OnClick and should own no parameters " +
+                        "except its owner instance."
+            }
+            function.isAccessible = true
+            function to id
+        }
+
+    private fun setAnnotatedOnClickListeners(){
+        functionIDPairs.forEach {(function, id) ->
+            val view = binding.root.findViewById<View>(id)
+
+            view.setOnClickListener {
+                function.call(this)
+            }
+        }
+    }
 }
