@@ -55,7 +55,8 @@ public abstract class KLog(
             Log.e(tag, info.joinToString(), ex)
         else {
             val newEx = Exception(info.joinToString())
-            val trace = getStackTraceString(newEx)
+            val traceLines = getStackTraceString(newEx).lines()
+            val trace = traceLines.first() + "\n" + traceLines.drop(3).joinToString("\n")
             Log.e(tag, trace)
         }
     }
