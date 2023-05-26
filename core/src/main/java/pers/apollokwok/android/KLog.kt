@@ -23,54 +23,39 @@ public abstract class KLog(
     public operator fun invoke(
         vararg info: Any?,
         tag: String = defaultTag,
-        e: Exception? = null,
     ){
-        if(!isDebug) return
+        if (!isDebug) return
 
-        val position = when (e) {
-            null -> {
-                val trace = Exception().stackTrace[2].toString()
-                val header = trace.substringBefore("$")
-                val tail = "(" + trace.substringAfter("(")
-                "$header$tail"
-            }
+        val trace = Exception().stackTrace[2].toString()
+        val header = trace.substringBefore("$")
+        val tail = "(" + trace.substringAfter("(")
+        val positionSuffix = "\nat $header$tail"
 
-            else -> getStackTraceString(e)
-        }
+        val msg = info.joinToString() + positionSuffix
 
-        val msg = info.joinToString(postfix = "\nat $position")
-
-        Log.println(Log.DEBUG, tag, msg)
+        Log.d(tag, msg)
     }
 
-    private fun log(
-        priority: Int,
-        info: Array<out Any?>,
-        tag: String,
-        e: Exception?,
-    ) {
-        val msg = info.joinToString()
-            .updateIf({ e != null }) {
-                it + "\nat" + getStackTraceString(e)
-            }
-
-        Log.println(priority, tag, msg)
-    }
-
-    public fun v(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
+    public fun v(vararg info: Any?, tag: String = defaultTag){
         if (isDebug)
-            log(Log.VERBOSE, info, tag, e)
+            Log.v(tag, info.joinToString())
     }
 
-    public fun i(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
-        log(Log.INFO, info, tag, e)
+    public fun i(vararg info: Any?, tag: String = defaultTag){
+        Log.i(tag, info.joinToString())
     }
 
-    public fun w(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
-        log(Log.WARN, info, tag, e)
+    public fun w(vararg info: Any?, tag: String = defaultTag){
+        Log.w(tag, info.joinToString())
     }
 
-    public fun e(vararg info: Any?, tag: String = defaultTag, e: Exception? = null){
-        log(Log.ERROR, info, tag, e)
+    public fun e(vararg info: Any?, tag: String = defaultTag, ex: Exception? = null){
+        val msg = info
+            .joinToString()
+            .updateIf({ ex != null }){
+                it + "\n" + getStackTraceString(ex)
+            }
+
+        Log.e(tag, msg)
     }
 }

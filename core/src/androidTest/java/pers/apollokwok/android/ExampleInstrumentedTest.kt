@@ -1,6 +1,7 @@
 package pers.apollokwok.android
 
-import androidx.test.platform.app.InstrumentationRegistry
+import android.icu.lang.UCharacter.GraphemeClusterBreak.L
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
 import org.junit.Test
@@ -16,10 +17,8 @@ import org.junit.Assert.*
 @RunWith(AndroidJUnit4::class)
 class MLog : KLog("Apollo", BuildConfig.DEBUG) {
     @Test
-    fun useAppContext() {
-        d(1,2)
-        _d("s", 1, 2, 3)
-
-        i(3)
+    fun a() {
+        Log.d(null, "d")
+        Log.d("Apollo", "d")
     }
 }

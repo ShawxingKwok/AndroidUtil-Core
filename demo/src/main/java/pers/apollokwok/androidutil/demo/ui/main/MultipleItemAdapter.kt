@@ -21,7 +21,6 @@ class MultipleItemAdapter(
             ) {
                 holder.binding.tv.setOnClickListener {
                     MLog("Teal")
-                    MLog.i("Error in teal", e = Exception())
                 }
             }
 
