@@ -5,6 +5,7 @@ package pers.apollokwok.android
 import android.util.Log
 import android.util.Log.getStackTraceString
 import pers.apollokwok.ktutil.updateIf
+import java.io.File.separator
 import java.lang.Exception
 
 /**
@@ -28,17 +29,18 @@ public abstract class KLog(
     ){
         if(!isDebug) return
 
-        val msg = info.joinToString(
-            separator = ", ",
-            postfix =
-                if (e == null) {
-                    val trace = Exception().stackTrace[2].toString()
-                    val header = trace.substringBefore("$")
-                    val tail = "(" + trace.substringAfter("(")
-                    "\n$header$tail"
-                } else
-                    "\n" + getStackTraceString(e)
-        )
+        val position = when (e) {
+            null -> {
+                val trace = Exception().stackTrace[2].toString()
+                val header = trace.substringBefore("$")
+                val tail = "(" + trace.substringAfter("(")
+                "$header$tail"
+            }
+
+            else -> getStackTraceString(e)
+        }
+
+        val msg = info.joinToString(separator = ",", postfix = "\nat $position")
 
         Log.println(Log.DEBUG, tag, msg)
     }
@@ -51,7 +53,7 @@ public abstract class KLog(
     ) {
         val msg = info.joinToString(", ")
             .updateIf({ e != null }) {
-                it + '\n' + getStackTraceString(e)
+                it + "\nat" + getStackTraceString(e)
             }
 
         Log.println(priority, tag, msg)

@@ -6,6 +6,7 @@ import pers.apollokwok.android.view.KListAdapter
 import pers.apollokwok.androidutil.demo.MLog
 import pers.apollokwok.androidutil.demo.databinding.ItemPurpleBinding
 import pers.apollokwok.androidutil.demo.databinding.ItemTealBinding
+import java.lang.Exception
 
 class MultipleItemAdapter(
     scope: CoroutineScope,
@@ -20,6 +21,7 @@ class MultipleItemAdapter(
             ) {
                 holder.binding.tv.setOnClickListener {
                     MLog("Teal")
+                    MLog.i("Error in teal", e = Exception())
                 }
             }
 
@@ -36,7 +38,7 @@ class MultipleItemAdapter(
             override fun onViewBindingHolderCreated(
                 holder: ViewBindingHolder<ItemPurpleBinding>
             ) {
-                MLog("Purple")
+                MLog.v("Purple")
             }
 
             override fun onBindViewBindingHolder(
