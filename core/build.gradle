@@ -35,7 +35,8 @@ android {
 
 dependencies {
     api 'androidx.core:core-ktx:1.10.1'
-    api 'io.github.apollokwok:kt-util:1.0.6'
+    // TODO
+    api 'io.github.apollokwok:kt-util:1.0.7-SNAPSHOT'
     //noinspection GradleDependency
     api "org.jetbrains.kotlin:kotlin-reflect:$kt_version"
 

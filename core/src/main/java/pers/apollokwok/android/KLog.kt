@@ -3,8 +3,7 @@
 package pers.apollokwok.android
 
 import android.util.Log
-import android.util.Log.getStackTraceString
-import androidx.core.app.NotificationCompatSideChannelService
+import pers.apollokwok.ktutil.TraceUtil
 import pers.apollokwok.ktutil.updateIf
 
 /**
@@ -12,52 +11,73 @@ import pers.apollokwok.ktutil.updateIf
  *
  * Usage example:
  * ```
- * object MLog : KLog("Apollo", BuildConfig.DEBUG)
+ * object MLog : AndroidKLog("Apollo", BuildConfig.DEBUG)
+ *```
  *
  * // somewhere
- * MLog.d(name, age)
+ *
+ * MLog(name)
+ *
+ * MLog.i(age, height)
  */
 public abstract class KLog(
     private val defaultTag: String,
     private val isDebug: Boolean,
 ) {
-    public operator fun invoke(
-        vararg info: Any?,
-        tag: String = defaultTag,
-    ){
-        if (!isDebug) return
+    private fun getContractedMsg(messages: Array<*>): String {
+        var msg = messages.joinToString()
 
-        val trace = Exception().stackTrace[2].toString()
-        val header = trace.substringBefore("$")
-        val tail = "(" + trace.substringAfter("(")
-        val positionSuffix = "\nat $header$tail"
-
-        val msg = info.joinToString() + positionSuffix
-
-        Log.d(tag, msg)
-    }
-
-    public fun v(vararg info: Any?, tag: String = defaultTag){
         if (isDebug)
-            Log.v(tag, info.joinToString())
+            msg += "\n" + TraceUtil.getTrace(2)
+
+        return msg
     }
 
-    public fun i(vararg info: Any?, tag: String = defaultTag){
-        Log.i(tag, info.joinToString())
+    public fun v(vararg messages: Any?){
+        Log.v(defaultTag, getContractedMsg(messages))
     }
 
-    public fun w(vararg info: Any?, tag: String = defaultTag){
-        Log.w(tag, info.joinToString())
+    public fun v(vararg messages: Any?, tag: String){
+        Log.v(tag, getContractedMsg(messages))
     }
 
-    public fun e(vararg info: Any?, tag: String = defaultTag, ex: Exception? = null){
-        if (ex != null)
-            Log.e(tag, info.joinToString(), ex)
-        else {
-            val newEx = Exception(info.joinToString())
-            val traceLines = getStackTraceString(newEx).lines()
-            val trace = traceLines.first() + "\n" + traceLines.drop(3).joinToString("\n")
-            Log.e(tag, trace)
-        }
+    public operator fun invoke(vararg messages: Any?){
+        Log.d(defaultTag, getContractedMsg(messages))
+    }
+
+    public operator fun invoke(vararg messages: Any?, tag: String){
+        Log.d(tag, getContractedMsg(messages))
+    }
+
+    public fun i(vararg messages: Any?){
+        Log.i(defaultTag, getContractedMsg(messages))
+    }
+
+    public fun i(vararg messages: Any?, tag: String){
+        Log.i(tag, getContractedMsg(messages))
+    }
+
+    public fun w(vararg messages: Any?){
+        Log.w(defaultTag, getContractedMsg(messages))
+    }
+
+    public fun w(vararg messages: Any?, tag: String){
+        Log.w(tag, getContractedMsg(messages))
+    }
+
+    public fun e(vararg messages: Any?){
+        Log.e(defaultTag, getContractedMsg(messages))
+    }
+
+    public fun e(vararg messages: Any?, tag: String){
+        Log.e(tag, getContractedMsg(messages))
+    }
+
+    public fun e(vararg messages: Any?, tr: Throwable){
+        Log.e(defaultTag, getContractedMsg(messages) + "\n" + TraceUtil.getTraces(tr))
+    }
+
+    public fun e(vararg messages: Any?, tag: String, tr: Throwable){
+        Log.e(tag, getContractedMsg(messages) + "\n" + TraceUtil.getTraces(tr))
     }
 }

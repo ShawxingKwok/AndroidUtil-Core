@@ -1,6 +1,5 @@
-package pers.apollokwok.androidutil
+package pers.apollokwok.myapplication
 
-import android.util.Log
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
@@ -8,7 +7,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.junit.Assert.*
-import pers.apollokwok.androidutil.demo.MLog
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -21,11 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("pers.apollokwok.androidutil", appContext.packageName)
-    }
-
-    @Test
-    fun removeLog(){
-
+        assertEquals("pers.apollokwok.myapplication", appContext.packageName)
     }
 }

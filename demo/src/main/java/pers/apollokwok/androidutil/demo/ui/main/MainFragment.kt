@@ -7,7 +7,7 @@ import pers.apollokwok.androidutil.demo.databinding.FragmentMainBinding
 
 class MainFragment : KFragment<FragmentMainBinding>(FragmentMainBinding::class) {
 
-    private val topAdapter: SingleItemAdapter by withView {
+    private val topAdapter: SingleItemAdapter by withBinding {
         SingleItemAdapter(
             scope = lifecycleScope,
             initialItems = (0..20).map(::User),
@@ -15,7 +15,7 @@ class MainFragment : KFragment<FragmentMainBinding>(FragmentMainBinding::class) 
         .also { binding.rvTop.adapter = it }
     }
 
-    private val bottomAdapter: MultipleItemAdapter by withView {
+    private val bottomAdapter: MultipleItemAdapter by withBinding {
         MultipleItemAdapter(
             scope = lifecycleScope,
             initialItems = (100..120).map(::User)
