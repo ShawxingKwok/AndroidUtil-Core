@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import androidx.lifecycle.LifecycleCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import pers.apollokwok.android.view.KListAdapter
+import pers.apollokwok.androidutil.demo.MLog
 import pers.apollokwok.androidutil.demo.databinding.ItemTealBinding
 
 class SingleItemAdapter(
@@ -14,7 +15,7 @@ class SingleItemAdapter(
 {
     override fun onViewHolderCreated(holder: ViewBindingHolder<ItemTealBinding>) {
         holder.binding.tv.setOnClickListener {
-            // TODO
+            MLog("Clicked single item ${holder.adapterPosition}.")
         }
     }
 
