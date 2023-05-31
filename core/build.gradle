@@ -4,10 +4,11 @@ plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
     id "com.vanniktech.maven.publish"
+    id "org.jetbrains.dokka"
 }
 
 android {
-    namespace 'pers.apollokwok.android'
+    namespace 'pers.shawxingkwok.android'
     compileSdk 33
 
     defaultConfig {
@@ -36,9 +37,9 @@ android {
 dependencies {
     api 'androidx.core:core-ktx:1.10.1'
     // TODO
-    api 'io.github.apollokwok:kt-util:1.0.7-SNAPSHOT'
+    api 'io.github.shawxingkwok:kt-util:1.0.0-SNAPSHOT'
     //noinspection GradleDependency
-    api "org.jetbrains.kotlin:kotlin-reflect:$kt_version"
+    api "org.jetbrains.kotlin:kotlin-reflect:$version_kt"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -52,7 +53,7 @@ tasks.withType(KotlinCompile).configureEach{
 
 // publish
 mavenPublishing {
-    coordinates("io.github.apollokwok", "android-util", "1.0.0-SNAPSHOT")
+    coordinates("io.github.shawxingkwok", "android-util", "1.0.0-SNAPSHOT")
     pom {
         name = "Personal andorid util"
         description = "Contains only a log util at present."
