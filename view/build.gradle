@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.dokka.DokkaConfiguration.Visibility
 
 plugins {
     id 'com.android.library'
@@ -60,5 +62,22 @@ mavenPublishing {
         name = "Android view util"
         description = "Android view part utils extended from my android util."
         inceptionYear = "2023"
+    }
+}
+
+// Configure all single-project Dokka tasks at the same time,
+// such as dokkaHtml, dokkaJavadoc and dokkaGfm.
+tasks.withType(DokkaTask.class) {
+    suppressInheritedMembers.set(true)
+    dokkaSourceSets.configureEach {
+        documentedVisibilities.set([
+                Visibility.PUBLIC,
+                Visibility.PROTECTED,
+        ])
+
+        perPackageOption {
+            matchingRegex.set(".*internal.*")
+            suppress.set(true)
+        }
     }
 }

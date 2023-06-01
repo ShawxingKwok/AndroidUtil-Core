@@ -9,6 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KFragment.OnClick
 import pers.shawxingkwok.ktutil.KReadWriteProperty
+import java.io.FileDescriptor
+import java.io.PrintWriter
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberFunctions
@@ -16,18 +18,23 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
 /**
- * Sets [binding] via [VB] and [bindingKClass].
- * Also supports [withBinding] and [OnClick].
+ * Sets [binding] via [VB] and [bindingKClass]. Also supports [withBinding] and [OnClick].
  */
 public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KClass<VB>) : Fragment() {
     private val actionsOnCreateView: MutableList<(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) -> Unit> = mutableListOf()
     private val actionsOnDestroyView: MutableList<() -> Unit> = mutableListOf()
 
+    /**
+     * @suppress
+     */
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         actionsOnCreateView.forEach { it(inflater, container, savedInstanceState) }
         return binding.root
     }
 
+    /**
+     * @suppress
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         actionsOnDestroyView.forEach { it() }
@@ -38,6 +45,8 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
 
     /**
      * Alive between [onCreateView] and [onDestroyView].
+     *
+     * @protected
      */
     protected val binding: VB get() = _binding!!
     private var bindingAlive: Boolean = false
@@ -66,7 +75,7 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
     //endregion
 
     /**
-     * The background value is alive with [binding].
+     * Delegates a value alive with [binding].
      *
      * Usage example:
      *
