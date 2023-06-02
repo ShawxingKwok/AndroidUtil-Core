@@ -1,4 +1,6 @@
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.dokka.DokkaConfiguration.Visibility
 
 plugins {
     id 'com.android.library'
@@ -49,6 +51,25 @@ dependencies {
 tasks.withType(KotlinCompile).configureEach{
     kotlinOptions.freeCompilerArgs += "-Xexplicit-api=warning"
 //    kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
+}
+
+// dokka
+tasks.withType(DokkaTask.class) {
+    suppressInheritedMembers.set(true)
+
+    outputDirectory.set(file("/Users/william/IdeaProjects/library/HomeSite/content/docs/androidutil/html"))
+
+    dokkaSourceSets.configureEach {
+        documentedVisibilities.set([
+                Visibility.PUBLIC,
+                Visibility.PROTECTED,
+        ])
+
+        perPackageOption {
+            matchingRegex.set(".*internal.*")
+            suppress.set(true)
+        }
+    }
 }
 
 // publish

@@ -18,7 +18,6 @@ import kotlin.reflect.KClass
 
 /**
  * A simplified [ListAdapter] with easier usage and better performance.
- *
  * Also supports multiple kinds of [ViewHolder]s in [KListAdapter.Multiple].
  *
  * Usage example:

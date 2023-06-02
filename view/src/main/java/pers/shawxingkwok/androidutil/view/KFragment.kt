@@ -9,8 +9,8 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import pers.shawxingkwok.androidutil.view.KFragment.OnClick
 import pers.shawxingkwok.ktutil.KReadWriteProperty
-import java.io.FileDescriptor
-import java.io.PrintWriter
+import java.lang.Exception
+import java.lang.NullPointerException
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.full.declaredMemberFunctions
@@ -18,7 +18,7 @@ import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.isAccessible
 
 /**
- * Sets [binding] via [VB] and [bindingKClass]. Also supports [withBinding] and [OnClick].
+ * Sets [binding] via [VB] and [bindingKClass]. Also supports [withView] and [OnClick].
  */
 public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KClass<VB>) : Fragment() {
     private val actionsOnCreateView: MutableList<(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) -> Unit> = mutableListOf()
@@ -40,16 +40,23 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
         actionsOnDestroyView.forEach { it() }
     }
 
+    private fun requireBindingAlive(name: String){
+        require(_binding != null){
+            "In ${javaClass.canonicalName}, " +
+            "$name is alive between inclusive 'onCreateView' and exclusive 'onDestroyView'."
+        }
+    }
+
     //region binding
     private var _binding: VB? = null
 
     /**
-     * Alive between [onCreateView] and [onDestroyView].
-     *
-     * @protected
+     * Alive between inclusive [onCreateView] and exclusive [onDestroyView].
      */
-    protected val binding: VB get() = _binding!!
-    private var bindingAlive: Boolean = false
+    protected val binding: VB get(){
+        requireBindingAlive("binding")
+        return _binding!!
+    }
 
     init {
         actionsOnCreateView += { inflater, container, _ ->
@@ -63,34 +70,25 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
                     Boolean::class.java
                 )
                 .invoke(null, inflater, container, false) as VB
-
-            bindingAlive = true
         }
 
         actionsOnDestroyView += {
             _binding = null
-            bindingAlive = false
         }
     }
     //endregion
 
     /**
-     * Delegates a value alive with [binding].
+     * Delegates a value alive between inclusive [onCreateView] and exclusive [onDestroyView].
      *
      * Usage example:
      *
      * ```
-     * val adapter by withBinding{ Adapter() }
+     * val adapter by withView{ Adapter() }
      */
-    protected fun <T> withBinding(initialize: () -> T): KReadWriteProperty<KFragment<VB>, T> =
+    protected fun <T> withView(initialize: () -> T): KReadWriteProperty<KFragment<VB>, T> =
         object  : KReadWriteProperty<KFragment<VB>, T> {
             var t: T? = null
-
-            fun requireSafe(propName: String) =
-                require(bindingAlive){
-                    "In ${javaClass.canonicalName}, " +
-                    "'$propName' should be called between 'onCreateView' and 'onDestroyView'."
-                }
 
             override fun onDelegate(thisRef: KFragment<VB>, property: KProperty<*>) {
                 actionsOnCreateView += { _, _, _ -> t = initialize() }
@@ -98,13 +96,13 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
             }
 
             override fun getValue(thisRef: KFragment<VB>, property: KProperty<*>): T {
-                requireSafe(property.name)
+                requireBindingAlive(property.name)
                 @Suppress("UNCHECKED_CAST")
                 return t as T
             }
 
             override fun setValue(thisRef: KFragment<VB>, property: KProperty<*>, value: T) {
-                requireSafe(property.name)
+                requireBindingAlive(property.name)
                 t = value
             }
         }
@@ -127,7 +125,7 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
      * }
      *```
      *
-     * Remember to suppress 'unused' warning if annotated by [OnClick].
+     * Remember to click 'alt + enter' and choose "suppress unused warning if annotated by [OnClick]".
      */
     @Retention(AnnotationRetention.RUNTIME)
     @Target(AnnotationTarget.FUNCTION)

@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 /**
  * Collects [this] with [collector] every [Fragment.onResume] inside [Fragment].
  *
- * Warning: Use this function in 'onCreateView' or 'onViewCreated'.
+ * Warning: Use this function in [Fragment.onCreateView] or [Fragment.onViewCreated].
  */
 context(Fragment)
 public fun <T> Flow<T>.collectOnResume(collector: FlowCollector<T>){

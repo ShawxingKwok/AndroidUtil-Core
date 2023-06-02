@@ -55,20 +55,12 @@ tasks.withType(KotlinCompile).configureEach{
     kotlinOptions.freeCompilerArgs += "-Xcontext-receivers"
 }
 
-// publish
-mavenPublishing {
-    coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
-    pom {
-        name = "Android view util"
-        description = "Android view part utils extended from my android util."
-        inceptionYear = "2023"
-    }
-}
-
-// Configure all single-project Dokka tasks at the same time,
-// such as dokkaHtml, dokkaJavadoc and dokkaGfm.
+// dokka
 tasks.withType(DokkaTask.class) {
     suppressInheritedMembers.set(true)
+
+    outputDirectory.set(file("/Users/william/IdeaProjects/library/HomeSite/content/docs/androidutilview/html"))
+
     dokkaSourceSets.configureEach {
         documentedVisibilities.set([
                 Visibility.PUBLIC,
@@ -79,5 +71,15 @@ tasks.withType(DokkaTask.class) {
             matchingRegex.set(".*internal.*")
             suppress.set(true)
         }
+    }
+}
+
+// publish
+mavenPublishing {
+    coordinates("io.github.shawxingkwok", "android-util-view", "1.0.0-SNAPSHOT")
+    pom {
+        name = "Android view util"
+        description = "Android view part utils extended from my android util."
+        inceptionYear = "2023"
     }
 }
