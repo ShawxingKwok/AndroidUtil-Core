@@ -31,23 +31,3 @@ public fun <T> Flow<T>.collectOnResume(collector: FlowCollector<T>){
         }
     }
 }
-
-/**
- * Collects [this] with [collector] every [AppCompatActivity.onResume].
- *
- * Warning: Use this function in [AppCompatActivity.onCreate].
- */
-context(AppCompatActivity)
-public fun <T> Flow<T>.collectOnResume(collector: FlowCollector<T>){
-    require(
-        lifecycle.currentState == Lifecycle.State.INITIALIZED
-    ){
-        "Use this function in 'onCreate'."
-    }
-
-    lifecycleScope.launch {
-        repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            collect(collector)
-        }
-    }
-}
