@@ -43,6 +43,7 @@ dependencies {
     api 'androidx.fragment:fragment-ktx:1.5.7'
     api 'androidx.appcompat:appcompat:1.6.1'
     api 'com.google.android.material:material:1.9.0'
+    api 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     api project(":core")
 
     testImplementation 'junit:junit:4.13.2'
