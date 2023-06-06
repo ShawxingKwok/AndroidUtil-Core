@@ -57,7 +57,7 @@ tasks.withType(KotlinCompile).configureEach{
 tasks.withType(DokkaTask.class) {
     suppressInheritedMembers.set(true)
 
-    outputDirectory.set(file("/Users/william/IdeaProjects/library/HomeSite/content/docs/androidutil/html"))
+    outputDirectory.set(file("/Users/william/IdeaProjects/library/ITWorks/content/docs/androidutil/html"))
 
     dokkaSourceSets.configureEach {
         documentedVisibilities.set([

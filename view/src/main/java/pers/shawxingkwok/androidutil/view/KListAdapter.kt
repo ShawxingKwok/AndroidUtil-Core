@@ -83,6 +83,9 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
      */
     protected open fun getChangePayload(oldItem: T, newItem: T): Any? = null
 
+    /**
+     * @suppress
+     */
     final override fun getItemCount(): Int = currentList.size
 
     protected open fun onCurrentListChanged(previousList: List<T>, currentList: List<T>){}
@@ -163,6 +166,9 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
 
     private val getBinding: Method by lazy(LazyThreadSafetyMode.NONE) { getGetBinding(bindingKClass) }
 
+    /**
+     * @suppress
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingHolder<VB> {
         val layoutInflater = LayoutInflater.from(parent.context)
         @Suppress("UNCHECKED_CAST")
@@ -238,7 +244,7 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
      *         }
      * }
      */
-    public abstract class Multiple<T>(
+    public abstract class Multiple<T> (
         scope: CoroutineScope,
         initialItems: List<T>,
     )
@@ -246,13 +252,22 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
     {
         private val viewBindingHolderBuilders = mutableListOf<ViewBindingHolderBuilder<ViewBinding>>()
 
+        /**
+         * @suppress
+         */
         protected abstract fun arrange(position: Int): ViewBindingHolderBuilder<ViewBinding>
 
+        /**
+         * @suppress
+         */
         final override fun getItemViewType(position: Int): Int {
             val builder = arrange(position)
             return viewBindingHolderBuilders.indexOf(builder)
         }
 
+        /**
+         * @suppress
+         */
         final override fun onCreateViewHolder(
             parent: ViewGroup,
             viewType: Int
@@ -261,11 +276,17 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
             return viewBindingHolderBuilders[viewType].buildViewHolder(parent, layoutInflater)
         }
 
+        /**
+         * @suppress
+         */
         final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
             val builder = arrange(position)
             builder.onBindViewBindingHolder(holder, position)
         }
 
+        /**
+         * @suppress
+         */
         final override fun onViewHolderCreated(holder: ViewBindingHolder<ViewBinding>) {}
 
         public abstract inner class ViewBindingHolderBuilder<out VB : ViewBinding>(

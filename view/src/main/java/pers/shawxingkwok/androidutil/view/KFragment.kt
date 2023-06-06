@@ -51,7 +51,9 @@ public abstract class KFragment<VB: ViewBinding>(private val bindingKClass: KCla
     private var _binding: VB? = null
 
     /**
-     * Alive between inclusive [onCreateView] and exclusive [onDestroyView].
+     * An automatically initialized [VB].
+     *
+     * Note: alive only between inclusive [onCreateView] and exclusive [onDestroyView].
      */
     protected val binding: VB get(){
         requireBindingAlive("binding")
