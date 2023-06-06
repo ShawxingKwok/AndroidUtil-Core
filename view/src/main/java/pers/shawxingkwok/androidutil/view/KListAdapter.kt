@@ -12,8 +12,12 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import java.lang.reflect.Method
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 /**
@@ -66,7 +70,7 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
     public var currentList: List<T> = initialItems
         private set
 
-    private val mUpdateCallback = AdapterListUpdateCallback(this)
+    private val updateCallback = AdapterListUpdateCallback(this)
 
     /**
      * @see DiffUtil.Callback.areItemsTheSame
@@ -91,11 +95,17 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
     protected open fun onCurrentListChanged(previousList: List<T>, currentList: List<T>){}
 
     // Max generation of currently scheduled runnable
-    @Volatile private var mMaxScheduledGeneration = 0
+    @Volatile private var maxScheduledGeneration = 0
+
+    private val diffDispatcher = run{
+        val workQueue = LinkedBlockingQueue<Runnable>()
+        val executor = ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, workQueue)
+        executor.asCoroutineDispatcher()
+    }
 
     public open fun submitList(newList: List<T>, actionOnDone: (() -> Unit)? = null) {
         // incrementing generation means any currently-running diffs are discarded when they finish
-        val runGeneration = ++mMaxScheduledGeneration
+        val runGeneration = ++maxScheduledGeneration
 
         if (newList == currentList) return
 
@@ -112,7 +122,7 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
             // fast simple remove all
             newList.isEmpty() -> {
                 execute {
-                    mUpdateCallback.onRemoved(0, previousList.size)
+                    updateCallback.onRemoved(0, previousList.size)
                 }
                 return
             }
@@ -120,7 +130,7 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
             // fast simple insert first
             previousList.isEmpty() -> {
                 execute {
-                    mUpdateCallback.onInserted(0, newList.size)
+                    updateCallback.onInserted(0, newList.size)
                 }
                 return
             }
@@ -142,14 +152,14 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
         }
 
         // compute in another thread.
-        scope.launch(Dispatchers.Default) {
+        scope.launch(diffDispatcher) {
             val result = DiffUtil.calculateDiff(callback)
 
             // switch to the main thread and update UI if there is no submitted new list.
-            if (mMaxScheduledGeneration == runGeneration)
+            if (maxScheduledGeneration == runGeneration)
                 scope.launch {
                     execute {
-                        result.dispatchUpdatesTo(mUpdateCallback)
+                        result.dispatchUpdatesTo(updateCallback)
                     }
                 }
         }
