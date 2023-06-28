@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import pers.shawxingkwok.ktutil.lazyFast
 import java.lang.reflect.Method
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -21,52 +21,76 @@ import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
 
 /**
- * A simplified [ListAdapter] with easier usage and better performance.
- * Also supports multiple kinds of [ViewHolder]s in [KListAdapter.Multiple].
+ * A simplified [ListAdapter] with easier usage and better performance,
+ * also supporting multiple kinds of items.
  *
  * Usage example:
  *
  * ```
- * class ItemAdapter(
+ * class MultipleItemsAdapter(
  *     scope: CoroutineScope,
  *     initialItems: List<User>,
  * )
- *     : KListAdapter<User, ItemTealBinding>(
- *         ItemTealBinding::class,
- *         scope,
- *         initialItems
- *     )
+ *     : KListAdapter.Multiple<User>(scope, initialItems)
  * {
- *     override fun onViewHolderCreated(
- *         holder: ViewBindingHolder<ItemTealBinding>
- *     ) {
- *         ...
- *     }
+ *     private val tealBuilder =
+ *         object : ViewBindingHolderBuilder<ItemTealBinding>(
+ *             ItemTealBinding::class
+ *         ){
+ *             override fun onViewBindingHolderCreated(
+ *                 holder: ViewBindingHolder<ItemTealBinding>
+ *             ) {
+ *                 ...
+ *             }
  *
- *     override fun onBindViewHolder(
- *         holder: ViewBindingHolder<ItemTealBinding>,
- *         position: Int
- *     ) {
- *         holder.binding.tv.text = currentList[position].toString()
- *     }
+ *             override fun onBindViewBindingHolder(
+ *                 holder: ViewBindingHolder<ItemTealBinding>,
+ *                 position: Int,
+ *             ) {
+ *                 holder.binding.tv.text =
+ *                     currentList[position].toString()
+ *             }
+ *         }
+ *
+ *     private val purpleBuilder =
+ *         object : ViewBindingHolderBuilder<ItemPurpleBinding>(
+ *             ItemPurpleBinding::class
+ *         ){
+ *             override fun onViewBindingHolderCreated(
+ *                 holder: ViewBindingHolder<ItemPurpleBinding>
+ *             ) {
+ *                 ...
+ *             }
+ *
+ *             override fun onBindViewBindingHolder(
+ *                 holder: ViewBindingHolder<ItemPurpleBinding>,
+ *                 position: Int,
+ *             ) {
+ *                 holder.binding.tv.text =
+ *                     currentList[position].toString()
+ *             }
+ *         }
  *
  *     override fun areItemsTheSame(
  *         oldItem: User,
- *         newItem: User
+ *         newItem: User,
  *     ): Boolean {
- *         return newItem == oldItem
+ *         return oldItem == newItem
  *     }
+ *
+ *     override fun arrange(position: Int): ViewBindingHolderBuilder<ViewBinding> =
+ *         when{
+ *             position % 2 == 0 -> tealBuilder
+ *             else -> purpleBuilder
+ *         }
  * }
  */
-public abstract class KListAdapter<T, VB: ViewBinding>(
-    private val bindingKClass: KClass<VB>,
+public abstract class KListAdapter<T>(
     private val scope: CoroutineScope,
     initialItems: List<T>,
 )
-    : RecyclerView.Adapter<KListAdapter.ViewBindingHolder<VB>>()
+    : RecyclerView.Adapter<KListAdapter.ViewBindingHolder<ViewBinding>>()
 {
-    private val me = this
-
     public var currentList: List<T> = initialItems
         private set
 
@@ -90,20 +114,21 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
     /**
      * @suppress
      */
-    final override fun getItemCount(): Int = currentList.size
+    final override fun getItemCount(): Int = arrangement.size
 
-    protected open fun onCurrentListChanged(previousList: List<T>, currentList: List<T>){}
+    protected open fun onCurrentListChanged(previousList: List<T>, currentList: List<T>) {}
 
     // Max generation of currently scheduled runnable
-    @Volatile private var maxScheduledGeneration = 0
+    @Volatile
+    private var maxScheduledGeneration = 0
 
-    private val diffDispatcher = run{
+    private val diffDispatcher = run {
         val workQueue = LinkedBlockingQueue<Runnable>()
         val executor = ThreadPoolExecutor(2, 2, 0L, TimeUnit.MILLISECONDS, workQueue)
         executor.asCoroutineDispatcher()
     }
 
-    public open fun submitList(newList: List<T>, actionOnDone: (() -> Unit)? = null) {
+    public fun submitList(newList: List<T>, onFinish: (() -> Unit)? = null) {
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = ++maxScheduledGeneration
 
@@ -111,14 +136,20 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
 
         val previousList = currentList
 
-        fun execute(action: () -> Unit){
+        fun execute(action: () -> Unit) {
             currentList = newList.toList()
             action()
             onCurrentListChanged(previousList, currentList)
-            actionOnDone?.invoke()
+
+            arrangement.clear()
+            arrange(arrangement)
+            allHolderBuilders.clear()
+            allHolderBuilders += arrangement
+
+            onFinish?.invoke()
         }
 
-        when{
+        when {
             // fast simple remove all
             newList.isEmpty() -> {
                 execute {
@@ -140,6 +171,8 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
             override fun getOldListSize() = previousList.size
 
             override fun getNewListSize(): Int = newList.size
+
+            private val me = this@KListAdapter
 
             override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean =
                 me.areItemsTheSame(previousList[oldItemPosition], newList[newItemPosition])
@@ -165,170 +198,79 @@ public abstract class KListAdapter<T, VB: ViewBinding>(
         }
     }
 
-    internal fun <V: ViewBinding> getGetBinding(bindingKClass: KClass<V>) =
-        bindingKClass.java
-            .getMethod(
-                "inflate",
-                LayoutInflater::class.java,
-                ViewGroup::class.java,
-                Boolean::class.java
-            )
+    private val arrangement by lazy {
+        mutableListOf<HolderBuilder<ViewBinding>>().also(::arrange)
+    }
 
-    private val getBinding: Method by lazy(LazyThreadSafetyMode.NONE) { getGetBinding(bindingKClass) }
+    private val allHolderBuilders by lazyFast { arrangement.toMutableSet() }
 
     /**
      * @suppress
      */
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewBindingHolder<VB> {
-        val layoutInflater = LayoutInflater.from(parent.context)
-        @Suppress("UNCHECKED_CAST")
-        val binding = getBinding(null, layoutInflater, parent, false) as VB
-        val holder = ViewBindingHolder(binding)
-        onViewHolderCreated(holder)
-        return holder
+    final override fun getItemViewType(position: Int): Int {
+        val builder = arrangement[position]
+        return allHolderBuilders.indexOf(builder)
     }
 
-    protected abstract fun onViewHolderCreated(holder: ViewBindingHolder<VB>)
+    /**
+     * @suppress
+     */
+    final override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int
+    ): ViewBindingHolder<ViewBinding> {
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val builder = allHolderBuilders.elementAt(viewType)
+        return builder.buildViewHolder(parent, layoutInflater)
+    }
 
     /**
-     * Extends from [KListAdapter] and supports multiple kinds of [ViewHolder]s.
-     *
-     * Usage example:
-     *
-     * ```
-     * class MultipleItemsAdapter(
-     *     scope: CoroutineScope,
-     *     initialItems: List<User>,
-     * )
-     *     : KListAdapter.Multiple<User>(scope, initialItems)
-     * {
-     *     private val tealBuilder =
-     *         object : ViewBindingHolderBuilder<ItemTealBinding>(
-     *             ItemTealBinding::class
-     *         ){
-     *             override fun onViewBindingHolderCreated(
-     *                 holder: ViewBindingHolder<ItemTealBinding>
-     *             ) {
-     *                 ...
-     *             }
-     *
-     *             override fun onBindViewBindingHolder(
-     *                 holder: ViewBindingHolder<ItemTealBinding>,
-     *                 position: Int,
-     *             ) {
-     *                 holder.binding.tv.text =
-     *                     currentList[position].toString()
-     *             }
-     *         }
-     *
-     *     private val purpleBuilder =
-     *         object : ViewBindingHolderBuilder<ItemPurpleBinding>(
-     *             ItemPurpleBinding::class
-     *         ){
-     *             override fun onViewBindingHolderCreated(
-     *                 holder: ViewBindingHolder<ItemPurpleBinding>
-     *             ) {
-     *                 ...
-     *             }
-     *
-     *             override fun onBindViewBindingHolder(
-     *                 holder: ViewBindingHolder<ItemPurpleBinding>,
-     *                 position: Int,
-     *             ) {
-     *                 holder.binding.tv.text =
-     *                     currentList[position].toString()
-     *             }
-     *         }
-     *
-     *     override fun areItemsTheSame(
-     *         oldItem: User,
-     *         newItem: User,
-     *     ): Boolean {
-     *         return oldItem == newItem
-     *     }
-     *
-     *     override fun arrange(position: Int): ViewBindingHolderBuilder<ViewBinding> =
-     *         when{
-     *             position % 2 == 0 -> tealBuilder
-     *             else -> purpleBuilder
-     *         }
-     * }
+     * @suppress
      */
-    public abstract class Multiple<T> (
-        scope: CoroutineScope,
-        initialItems: List<T>,
-    )
-        : KListAdapter<T, ViewBinding>(ViewBinding::class, scope, initialItems)
-    {
-        private val viewBindingHolderBuilders = mutableListOf<ViewBindingHolderBuilder<ViewBinding>>()
+    final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
+        val builder = arrangement[position]
+        builder.onBindHolder(holder, position)
+    }
 
-        /**
-         * @suppress
-         */
-        protected abstract fun arrange(position: Int): ViewBindingHolderBuilder<ViewBinding>
+    protected abstract fun arrange(builders: MutableList<HolderBuilder<ViewBinding>>)
 
-        /**
-         * @suppress
-         */
-        final override fun getItemViewType(position: Int): Int {
-            val builder = arrange(position)
-            return viewBindingHolderBuilders.indexOf(builder)
-        }
+    public abstract class HolderBuilder<out VB : ViewBinding>(
+        bindingKClass: KClass<VB>,
+    ) {
+        private val getBinding: Method = getGetBinding(bindingKClass)
 
-        /**
-         * @suppress
-         */
-        final override fun onCreateViewHolder(
+        @Suppress("UNCHECKED_CAST")
+        internal fun buildViewHolder(
             parent: ViewGroup,
-            viewType: Int
-        ): ViewBindingHolder<ViewBinding> {
-            val layoutInflater = LayoutInflater.from(parent.context)
-            return viewBindingHolderBuilders[viewType].buildViewHolder(parent, layoutInflater)
+            layoutInflater: LayoutInflater,
+        )
+            : ViewBindingHolder<@UnsafeVariance VB>
+        {
+            val binding = getBinding(null, layoutInflater, parent, false) as VB
+            val holder = ViewBindingHolder(binding)
+            onHolderCreated(holder)
+            return holder
         }
 
-        /**
-         * @suppress
-         */
-        final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
-            val builder = arrange(position)
-            builder.onBindViewBindingHolder(holder, position)
-        }
+        public abstract fun onHolderCreated(holder: ViewBindingHolder<@UnsafeVariance VB>)
 
-        /**
-         * @suppress
-         */
-        final override fun onViewHolderCreated(holder: ViewBindingHolder<ViewBinding>) {}
-
-        public abstract inner class ViewBindingHolderBuilder<out VB : ViewBinding>(
-            bindingKClass: KClass<VB>,
-        ) {
-            init {
-                viewBindingHolderBuilders += this
-            }
-
-            private val getBinding: Method = getGetBinding(bindingKClass)
-
-            @Suppress("UNCHECKED_CAST")
-            internal fun buildViewHolder(
-                parent: ViewGroup,
-                layoutInflater: LayoutInflater,
-            )
-                : ViewBindingHolder<@UnsafeVariance VB>
-            {
-                val binding = getBinding(null, layoutInflater, parent, false) as VB
-                val holder = ViewBindingHolder(binding)
-                onViewBindingHolderCreated(holder)
-                return holder
-            }
-
-            public abstract fun onViewBindingHolderCreated(holder: ViewBindingHolder<@UnsafeVariance VB>)
-
-            public abstract fun onBindViewBindingHolder(
-                holder: ViewBindingHolder<@UnsafeVariance VB>,
-                position: Int,
-            )
-        }
+        public abstract fun onBindHolder(holder: ViewBindingHolder<@UnsafeVariance VB>, position: Int)
     }
 
     public class ViewBindingHolder<out VB : ViewBinding>(public val binding: VB) : ViewHolder(binding.root)
+
+    private companion object{
+        private val cache = mutableMapOf<KClass<out ViewBinding>, Method>()
+
+        private fun getGetBinding(bindingKClass: KClass<out ViewBinding>): Method =
+            cache.getOrPut(bindingKClass) {
+                bindingKClass.java
+                    .getMethod(
+                        "inflate",
+                        LayoutInflater::class.java,
+                        ViewGroup::class.java,
+                        Boolean::class.java
+                    )
+            }
+    }
 }
