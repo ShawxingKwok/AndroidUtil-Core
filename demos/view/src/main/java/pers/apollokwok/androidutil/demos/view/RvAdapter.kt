@@ -9,16 +9,11 @@ import pers.apollokwok.androidutil.demos.view.databinding.ItemTealBinding
 import pers.shawxingkwok.androidutil.view.KRecyclerViewAdapter
 
 class RvAdapter(scope: CoroutineScope, var users: List<User>) : KRecyclerViewAdapter(scope) {
-    override val holderCreators: Set<HolderCreator<ViewBinding>> =
-        setOf(
-            HolderCreator(ItemHeaderBinding::class),
-            HolderCreator(ItemPurpleBinding::class),
-            HolderCreator(ItemTealBinding::class),
-            HolderCreator(ItemFooterBinding::class),
-        )
+
+    override fun register(creators: MutableList<HolderCreator<ViewBinding>>) {}
 
     override fun arrange(binders: MutableList<HolderBinder<ViewBinding>>) {
-        binders += HolderBinder(ItemHeaderBinding::class, null, null)
+        binders += HolderBinder(ItemHeaderBinding::class, null, null){}
 
         binders += users.mapIndexed { i, user ->
             if (i % 2 == 0)
@@ -39,6 +34,6 @@ class RvAdapter(scope: CoroutineScope, var users: List<User>) : KRecyclerViewAda
                 }
         }
 
-        binders += HolderBinder(ItemFooterBinding::class, null, null)
+        binders += HolderBinder(ItemFooterBinding::class, null, null){}
     }
 }

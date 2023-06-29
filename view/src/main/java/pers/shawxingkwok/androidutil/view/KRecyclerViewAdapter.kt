@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import androidx.viewbinding.ViewBinding
 import kotlinx.coroutines.*
 import pers.shawxingkwok.ktutil.mutableLazy
+import pers.shawxingkwok.ktutil.updateIf
 import java.lang.Runnable
 import java.lang.reflect.Method
 import java.util.concurrent.LinkedBlockingQueue
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
 
 /**
- * A simplified [ListAdapter] with easier usage and supporting multiple kinds of items.
+ * A simplified [RecyclerView.Adapter] supporting multiple kinds of items.
  *
  * See [detailed docs](https://shawxingkwok.github.io/ITWorks/docs/androidutilview/html/view/pers.shawxingkwok.androidutil.view/-k-recycler-view-adapter/)
  */
@@ -107,7 +108,15 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
     }
 
-    protected abstract val holderCreators: Set<HolderCreator<ViewBinding>>
+    private var holderCreators: List<HolderCreator<ViewBinding>> by mutableLazy {
+        val list = mutableListOf<HolderCreator<ViewBinding>>().also(::register)
+
+        require(list.distinctBy { it.bindingKClass }.size == list.size){
+            "Creation helpers are distinct by bindingKClass, but you register repeatedly."
+        }
+
+        list
+    }
 
     private var holderBinders: List<HolderBinder<ViewBinding>> by mutableLazy {
         mutableListOf<HolderBinder<ViewBinding>>().also(::arrange)
@@ -119,8 +128,12 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
     final override fun getItemViewType(position: Int): Int {
         val binder = holderBinders[position]
 
-        return holderCreators.indexOfFirst {
-            it.bindingKClass == binder.bindingKClass
+        return holderCreators.indexOfFirst { holderCreator ->
+            holderCreator.bindingKClass == binder.bindingKClass
+        }
+        .updateIf({ i ->  i == -1 }) {
+            holderCreators += HolderCreator(binder.bindingKClass){}
+            return holderCreators.lastIndex
         }
     }
 
@@ -140,14 +153,16 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
      * @suppress
      */
     final override fun onBindViewHolder(holder: ViewBindingHolder<ViewBinding>, position: Int) {
-        holderBinders[position].onBindHolder?.invoke(holder)
+        holderBinders[position].onBindHolder(holder)
     }
+
+    protected abstract fun register(creators: MutableList<HolderCreator<ViewBinding>>)
 
     protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
 
     public class HolderCreator<out VB : ViewBinding> (
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
-        internal val onHolderCreated: ((holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit)? = null,
+        internal val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
     ) {
         private val getBinding: Method = bindingKClass.java
             .getMethod(
@@ -166,7 +181,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         {
             val binding = getBinding(null, layoutInflater, parent, false) as VB
             val holder = ViewBindingHolder(binding)
-            onHolderCreated?.invoke(holder)
+            onHolderCreated(holder)
             return holder
         }
     }
@@ -175,8 +190,8 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val id: Any?,
         internal val contentId: Any?,
-        internal val onBindHolder: ((holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit)? = null
+        internal val onBindHolder: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
     )
 
-    public class ViewBindingHolder<out VB : ViewBinding>(public val binding: VB) : ViewHolder(binding.root)
+    public class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
 }
