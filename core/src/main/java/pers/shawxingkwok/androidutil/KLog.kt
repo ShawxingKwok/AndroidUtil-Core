@@ -19,10 +19,8 @@ import pers.shawxingkwok.ktutil.updateIf
  * MLog.i(20, 1.8)
  *
  * // Logs:
- * D    Jack
- *          at ...(xx.kt:10)
- * I    20, 1.8
- *          at ...(xx.kt:11)
+ * D    Jack (xx.kt:10)
+ * I    20, 1.8 (xx.kt:11)
  *```
  *
  * Note: for released android libraries, on level 'VERBOSE' and 'DEBUG', its logs are not visible;
@@ -39,7 +37,7 @@ public abstract class KLog(
     private fun getContractedMsg(messages: Array<*>, addTrace: Boolean): String =
         messages.joinToString()
         .updateIf({ addTrace }){
-            it + "\n" + TraceUtil.getTrace(3)
+            it + " " + TraceUtil.getSimpleTrace(3)
         }
 
     /**
