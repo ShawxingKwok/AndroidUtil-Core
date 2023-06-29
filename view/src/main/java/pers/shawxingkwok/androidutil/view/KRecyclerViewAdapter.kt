@@ -164,13 +164,20 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
     ) {
-        private val getBinding: Method = bindingKClass.java
-            .getMethod(
-                "inflate",
-                LayoutInflater::class.java,
-                ViewGroup::class.java,
-                Boolean::class.java
-            )
+        private companion object{
+            private val cache = mutableMapOf<KClass<out ViewBinding>, Method>()
+        }
+
+        private val getBinding: Method =
+            cache.getOrPut(bindingKClass){
+                bindingKClass.java
+                    .getMethod(
+                        "inflate",
+                        LayoutInflater::class.java,
+                        ViewGroup::class.java,
+                        Boolean::class.java
+                    )
+            }
 
         @Suppress("UNCHECKED_CAST")
         internal fun buildViewHolder(
@@ -180,9 +187,7 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
             : ViewBindingHolder<@UnsafeVariance VB>
         {
             val binding = getBinding(null, layoutInflater, parent, false) as VB
-            val holder = ViewBindingHolder(binding)
-            onHolderCreated(holder)
-            return holder
+            return ViewBindingHolder(binding).also(onHolderCreated)
         }
     }
 

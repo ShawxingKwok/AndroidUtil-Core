@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import pers.apollokwok.androidutil.demos.view.databinding.FragmentMainBinding
 import pers.shawxingkwok.androidutil.view.KFragment
 import pers.shawxingkwok.androidutil.view.collectOnResume
