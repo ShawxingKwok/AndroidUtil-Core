@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace 'pers.shawxingkwok.android.view'
+    namespace 'pers.shawxingkwok.androidutil.view'
     compileSdk 33
 
     defaultConfig {
