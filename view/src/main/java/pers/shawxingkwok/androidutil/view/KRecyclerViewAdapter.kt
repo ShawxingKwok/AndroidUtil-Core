@@ -45,6 +45,11 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         executor.asCoroutineDispatcher()
     }
 
+    /**
+     * Notifies [KRecyclerViewAdapter] to update and call [onFinish].
+     *
+     * Warning: [update] may be called too frequently, which makes some previous [onFinish] may be omitted.
+     */
     public fun update(onFinish: (() -> Unit)? = null) {
         // incrementing generation means any currently-running diffs are discarded when they finish
         val runGeneration = maxScheduledGeneration.addAndGet(1)
@@ -156,10 +161,19 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         holderBinders[position].onBindHolder(holder)
     }
 
+    /**
+     * Processes [ViewBindingHolder] after its creation via [creators].
+     */
     protected abstract fun register(creators: MutableList<HolderCreator<ViewBinding>>)
 
+    /**
+     * Arranges new items via [binders].
+     */
     protected abstract fun arrange(binders: MutableList<HolderBinder<ViewBinding>>)
 
+    /**
+     * @suppress
+     */
     public class HolderCreator<out VB : ViewBinding> (
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val onHolderCreated: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit,
@@ -191,6 +205,9 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         }
     }
 
+    /**
+     * @suppress
+     */
     public class HolderBinder<out VB : ViewBinding>(
         internal val bindingKClass: KClass<@UnsafeVariance VB>,
         internal val id: Any?,
@@ -198,5 +215,8 @@ public abstract class KRecyclerViewAdapter(private val scope: CoroutineScope)
         internal val onBindHolder: (holder: ViewBindingHolder<@UnsafeVariance VB>) -> Unit
     )
 
+    /**
+     * @suppress
+     */
     public class ViewBindingHolder<out VB : ViewBinding> internal constructor(public val binding: VB) : ViewHolder(binding.root)
 }

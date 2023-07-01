@@ -1,10 +1,11 @@
 package pers.shawxingkwok.androidutil
 
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.Exception
+
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -13,20 +14,24 @@ import java.lang.Exception
  */
 @RunWith(AndroidJUnit4::class)
 class LogTest {
-    val MLog = object : KLog("Shawxing", BuildConfig.DEBUG){}
+    object MLog : KLog(BuildConfig.DEBUG)
 
     val tr = Exception("fJ")
 
     @Test
     fun a() {
+        KLog("")
+        KLog(null, " (ExampleInstrumental.kt:23)")
+
         MLog("on Debug")
 
         class E{
             init {
-                MLog.e("F", 1)
-                MLog.e("F", 1, tr = tr)
+                KLog.e("F", 1)
+                KLog.e("F", 1, tr = tr)
             }
         }
-        val e =E()
+
+        val e = E()
     }
 }

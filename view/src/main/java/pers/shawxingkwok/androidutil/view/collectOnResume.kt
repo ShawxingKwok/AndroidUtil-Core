@@ -1,8 +1,5 @@
 package pers.shawxingkwok.androidutil.view
 
-import android.annotation.SuppressLint
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope

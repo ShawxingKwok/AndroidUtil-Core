@@ -3,8 +3,10 @@
 package pers.shawxingkwok.androidutil
 
 import android.util.Log
-import pers.shawxingkwok.ktutil.TraceUtil
-import pers.shawxingkwok.ktutil.updateIf
+import java.io.PrintWriter
+import java.io.StringWriter
+import java.net.UnknownHostException
+import kotlin.reflect.full.staticProperties
 
 /**
  * A log util extended from android logcat.
@@ -12,7 +14,7 @@ import pers.shawxingkwok.ktutil.updateIf
  * Usage example:
  * ```
  * // Set your log class.
- * object MLog : AndroidKLog("Shawxing", BuildConfig.DEBUG)
+ * object MLog : AndroidKLog("SXK", BuildConfig.DEBUG)
  *
  * // Log somewhere.
  * MLog("Jack")
@@ -31,116 +33,98 @@ import pers.shawxingkwok.ktutil.updateIf
  * remove logs in the released apk.
  */
 public abstract class KLog(
-    private val defaultTag: String,
     private val isDebug: Boolean,
+    private val defaultTagHeader: String? = null,
 ) {
-    private fun getContractedMsg(messages: Array<*>, addTrace: Boolean): String =
-        messages.joinToString()
-        .updateIf({ addTrace }){
-            it + " " + TraceUtil.getSimpleTrace(3)
+    public companion object : KLog(
+        isDebug = Class.forName(AppContext.packageName + "." + "BuildConfig")
+            .kotlin
+            .staticProperties
+            .first { it.name == "DEBUG" }.get() as Boolean,
+
+        defaultTagHeader = "SXK",
+    )
+
+    private fun log(level: Int, customedTag: String?, messages: Array<out Any?>, tr: Throwable?){
+        if (!isDebug && level < Log.WARN)
+            return
+
+        val traceElement = Thread.currentThread().stackTrace[4]
+        val trace = "(${traceElement.fileName}:${traceElement.lineNumber})"
+
+        val tag = when{
+            customedTag != null -> customedTag
+            defaultTagHeader != null -> "$defaultTagHeader ${traceElement.fileName.substringBeforeLast(".")}"
+            else -> traceElement.fileName.substringBeforeLast(".")
         }
 
-    /**
-     * Log out [messages] with level [Log.VERBOSE] and [defaultTag]. **Trace** would be appended when [isDebug].
-     */
+        var tracedMsg = messages.joinToString() + " " + trace
+
+        if (tr != null) run{
+            var t: Throwable? = tr
+
+            while (t != null) {
+                if (t is UnknownHostException)
+                    return@run
+
+                t = t.cause
+            }
+
+            val sw = StringWriter()
+            val pw = PrintWriter(sw)
+            tr.printStackTrace(pw)
+            pw.flush()
+            tracedMsg += "\n" + sw.toString()
+        }
+
+        Log.println(level, tag, tracedMsg)
+    }
+
     public fun v(vararg messages: Any?){
-        if (isDebug) {
-            val msg = getContractedMsg(messages, true)
-            Log.v(defaultTag, msg)
-        }
+        log(Log.VERBOSE, null, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.VERBOSE] and [tag]. **Trace** would be appended when [isDebug].
-     */
     public fun v(vararg messages: Any?, tag: String){
-        if (isDebug) {
-            val msg = getContractedMsg(messages, true)
-            Log.v(tag, msg)
-        }
+        log(Log.VERBOSE, tag, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.DEBUG] and [defaultTag]. **Trace** would be appended when [isDebug].
-     */
     public operator fun invoke(vararg messages: Any?){
-        if (isDebug) {
-            val msg = getContractedMsg(messages, true)
-            Log.d(defaultTag, msg)
-        }
+        log(Log.DEBUG, null, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.DEBUG] and [tag]. **Trace** would be appended when [isDebug].
-     */
     public operator fun invoke(vararg messages: Any?, tag: String){
-        if (isDebug) {
-            val msg = getContractedMsg(messages, true)
-            Log.d(tag, msg)
-        }
+        log(Log.DEBUG, tag, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.INFO] and [defaultTag]. **Trace** would be appended when [isDebug].
-     */
     public fun i(vararg messages: Any?){
-        val msg = getContractedMsg(messages, isDebug)
-        Log.i(defaultTag, msg)
+        log(Log.INFO, null, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.INFO] and [tag]. **Trace** would be appended when [isDebug].
-     */
     public fun i(vararg messages: Any?, tag: String){
-        val msg = getContractedMsg(messages, isDebug)
-        Log.i(tag, msg)
+        log(Log.INFO, tag, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.WARN] and [defaultTag]. **Trace** would be appended when [isDebug].
-     */
     public fun w(vararg messages: Any?){
-        val msg = getContractedMsg(messages, isDebug)
-        Log.w(defaultTag, msg)
+        log(Log.WARN, null, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.WARN] and [tag]. **Trace** would be appended when [isDebug].
-     */
     public fun w(vararg messages: Any?, tag: String){
-        val msg = getContractedMsg(messages, isDebug)
-        Log.w(tag, msg)
+        log(Log.WARN, tag, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.ERROR] and [defaultTag]. **Trace** would be always appended.
-     */
     public fun e(vararg messages: Any?){
-        val msg = getContractedMsg(messages, true)
-        Log.e(defaultTag, msg)
+        log(Log.ERROR, null, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.ERROR] and [tag]. **Trace** would be always appended.
-     */
     public fun e(vararg messages: Any?, tag: String){
-        val msg = getContractedMsg(messages, true)
-        Log.e(tag, msg)
+        log(Log.ERROR, tag, messages, null)
     }
 
-    /**
-     * Log out [messages] with level [Log.ERROR], [defaultTag] and [tr]. **Trace** would be always appended.
-     */
     public fun e(vararg messages: Any?, tr: Throwable){
-        val msg = getContractedMsg(messages, true)
-        Log.e(defaultTag, msg + "\n" + TraceUtil.getTraces(tr))
+        log(Log.ERROR, null, messages, tr)
     }
 
-    /**
-     * Log out [messages] with level [Log.ERROR], [tag] and [tr]. **Trace** would be always appended.
-     */
     public fun e(vararg messages: Any?, tag: String, tr: Throwable){
-        val msg = getContractedMsg(messages, true)
-        Log.e(tag, msg + "\n" + TraceUtil.getTraces(tr))
+        log(Log.ERROR, tag, messages, tr)
     }
 }

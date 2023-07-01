@@ -42,6 +42,7 @@ dependencies {
     api 'io.github.shawxingkwok:kt-util:1.0.0-SNAPSHOT'
     //noinspection GradleDependency
     api "org.jetbrains.kotlin:kotlin-reflect:$version_kt"
+    implementation "androidx.startup:startup-runtime:1.1.1"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -57,7 +58,7 @@ tasks.withType(KotlinCompile).configureEach{
 tasks.withType(DokkaTask.class) {
     suppressInheritedMembers.set(true)
 
-    outputDirectory.set(file("/Users/william/IdeaProjects/library/ITWorks/content/docs/androidutil/html"))
+    outputDirectory.set(file("/Users/william/IdeaProjects/library/ITWorks/content/docs/android/util-core/html"))
 
     dokkaSourceSets.configureEach {
         documentedVisibilities.set([
@@ -74,7 +75,7 @@ tasks.withType(DokkaTask.class) {
 
 // publish
 mavenPublishing {
-    coordinates("io.github.shawxingkwok", "android-util", "1.0.0-SNAPSHOT")
+    coordinates("io.github.shawxingkwok", "android-util-core", "1.0.0-SNAPSHOT")
     pom {
         name = "Personal andorid util"
         description = "Contains only a log util at present."
