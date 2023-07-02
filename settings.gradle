@@ -5,6 +5,7 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -13,8 +14,7 @@ dependencyResolutionManagement {
         maven{ url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
-rootProject.name = "AndroidUtil"
-include ':demos:core'
-include ':core'
-include ':view'
-include ':demos:view'
+
+rootProject.name = "Android Util-core"
+include ':api'
+include ':demo'
