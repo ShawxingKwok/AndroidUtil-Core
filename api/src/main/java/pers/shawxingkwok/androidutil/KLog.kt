@@ -2,11 +2,12 @@
 
 package pers.shawxingkwok.androidutil
 
+import android.content.pm.ApplicationInfo
 import android.util.Log
+import pers.shawxingkwok.androidutil.KLog.Companion.id
 import pers.shawxingkwok.ktutil.updateIf
-import java.io.PrintWriter
-import java.io.StringWriter
-import java.net.UnknownHostException
+
+private val AppOnDebug = (AppContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
 /**
  * A log util based on the official android log.
@@ -66,65 +67,91 @@ import java.net.UnknownHostException
  *                                          at ...
  *```
  */
+
+/**
+ * learning or junit test
+ *      KLog
+ *
+ * system code
+ *
+ *
+ * open library
+ *
+ * app submodules
+ *
+ */
+
 public abstract class KLog private constructor(
-    private val id: String?,
-    private val isDebug: Boolean,
-    private val warnAfterRelease: ((String) -> Unit)?,
-    private val errorAfterRelease: ((String) -> Unit)?,
+    private val onDebug: Boolean,
+    private val id: String,
 ) {
-    public companion object : KLog(
-        isDebug = AppOnDebug,
-        id = AppContext
-            .packageName
-            .split(".")
-            .joinToString(""){ it.first().uppercase() },
+    public companion object : KLog(true, "KLOG")
+
+    public abstract class Reportable(
+        onDebug: Boolean,
+        private val id: String,
     )
+        : KLog(onDebug, id)
+    {
+        protected abstract fun report(tag: String, msgWithTrace: String)
 
-    public constructor(isDebug: Boolean, id: String?) : this(id, isDebug, null, null)
+        // TODO(CHECK)
+        private fun log(
+            tagPrefix: String?,
+            messages: Array<out Any?>,
+            tr: Throwable?,
+        ){
+            val traceElement = Thread.currentThread().stackTrace[4]
 
-    public constructor(
-        isDebug: Boolean,
-        id: String?,
-        warnAfterRelease: (String) -> Unit,
-        errorAfterRelease: (String) -> Unit,
-    ) :
-        this(id, isDebug, warnAfterRelease, errorAfterRelease)
+            val trace = traceElement.toString()
+
+            val tag =
+                listOfNotNull(
+                    tagPrefix,
+                    traceElement.fileName.substringBeforeLast("."),
+                    id
+                )
+                .joinToString(" ")
+
+            val trTrace =  Log.getStackTraceString(tr)
+
+            val msgWithTrace = messages.joinToString(postfix = " $trace")
+                .updateIf({ trTrace.any() }){ it + "\n" + trTrace }
+
+            report(tag, msgWithTrace)
+
+            if (AppOnDebug)
+                Log.println(Log.ASSERT, tag, msgWithTrace)
+        }
+
+        public fun r(vararg messages: Any?){
+            log(null, messages, null)
+        }
+
+        public fun r(vararg messages: Any?, tagPrefix: String){
+            log(tagPrefix, messages, null)
+        }
+
+        public fun r(vararg messages: Any?, tr: Throwable){
+            log(null, messages, tr)
+        }
+
+        public fun r(vararg messages: Any?, tagPrefix: String, tr: Throwable){
+            log(tagPrefix, messages, tr)
+        }
+    }
 
     private fun log(
         level: Int,
-        customedTag: String?,
+        tagPrefix: String?,
         messages: Array<out Any?>,
         tr: Throwable?,
     ){
-        val printOut: (String, String) -> Unit =
-            when{
-                isDebug -> { tag, tracedMsg ->
-                    Log.println(level, tag, tracedMsg)
-                }
-
-                // as a released library on a debugging app
-                AppOnDebug ->
-                    if (level >= Log.INFO)
-                        { tag, tracedMsg ->
-                            Log.println(level, tag, tracedMsg)
-                        }
-                    else
-                        return
-
-                // on a released app
-
-                level == Log.WARN && warnAfterRelease != null ->
-                    { tag, tracedMsg ->
-                        warnAfterRelease.invoke("$tag | $tracedMsg")
-                    }
-
-                level == Log.ERROR && errorAfterRelease != null ->
-                    { tag, tracedMsg ->
-                        errorAfterRelease.invoke("$tag | $tracedMsg")
-                    }
-
-                else -> return
-            }
+        when{
+            onDebug -> {}
+            AppOnDebug -> if (level < Log.INFO) return
+            else -> return
+        }
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
@@ -132,32 +159,18 @@ public abstract class KLog private constructor(
 
         val tag =
             listOfNotNull(
-                customedTag,
+                tagPrefix,
                 traceElement.fileName.substringBeforeLast("."),
                 id
             )
             .joinToString(" ")
 
-        val tracedMsg = messages.joinToString(postfix = " $trace")
-            .updateIf({ tr != null }){
-                var t: Throwable? = tr
+        val trTrace =  Log.getStackTraceString(tr)
 
-                while (t != null) {
-                    if (t is UnknownHostException)
-                        return@updateIf it
+        val msgWithTrace = messages.joinToString(postfix = " $trace")
+            .updateIf({ trTrace.any() }){ it + "\n" + trTrace }
 
-                    t = t.cause
-                }
-
-                val sw = StringWriter()
-                val pw = PrintWriter(sw)
-                tr!!.printStackTrace(pw)
-                pw.flush()
-
-                it + "\n" + sw.toString()
-            }
-
-        printOut(tag, tracedMsg)
+        Log.println(level, tag, msgWithTrace)
     }
 
     public fun v(vararg messages: Any?){
