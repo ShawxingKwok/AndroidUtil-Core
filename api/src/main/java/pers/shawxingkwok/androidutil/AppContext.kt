@@ -2,6 +2,7 @@ package pers.shawxingkwok.androidutil
 
 import android.content.Context
 import androidx.startup.Initializer
+import java.lang.Exception
 
 public lateinit var AppContext: Context
     private set

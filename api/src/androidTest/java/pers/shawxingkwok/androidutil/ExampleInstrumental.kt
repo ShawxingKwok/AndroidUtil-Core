@@ -20,25 +20,16 @@ class LogTest {
 
     @Test
     fun a() {
-        val isDebug = (AppContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
-        println(isDebug)
-
-        Log.d("SX", "1")
-        Log.wtf("SX", "2")
-        Log.e("SX", "3")
-        Log.d("SX", "4")
-
         KLog("")
-        KLog(null, " (ExampleInstrumental.kt:23)")
 
-
-        class E{
+        object {
             init {
-                KLog.e("F", 1)
-                KLog.e("F", 1, tr = tr)
+                val tr = java.lang.Exception()
+                KLog("d")
+                KLog.i("i")
+                KLog.e("e")
+                KLog.e("et", tr = tr)
             }
         }
-
-        val e = E()
     }
 }

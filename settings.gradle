@@ -11,6 +11,8 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        jcenter()
+        maven { url 'https://www.jitpack.io' }
         maven{ url "https://s01.oss.sonatype.org/content/repositories/snapshots/" }
     }
 }
@@ -18,4 +20,3 @@ dependencyResolutionManagement {
 rootProject.name = "Android Util-core"
 include ':api'
 include ':demo'
-include ':myapplication'

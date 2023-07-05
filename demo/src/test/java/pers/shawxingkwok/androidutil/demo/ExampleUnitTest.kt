@@ -1,4 +1,4 @@
-package pers.shawxingkwok.androidutil.myapplication
+package pers.shawxingkwok.androidutil.demo
 
 import org.junit.Test
 
