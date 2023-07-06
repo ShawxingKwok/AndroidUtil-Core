@@ -5,6 +5,7 @@ package pers.shawxingkwok.androidutil
 import android.content.pm.ApplicationInfo
 import android.util.Log
 import pers.shawxingkwok.ktutil.updateIf
+import kotlin.reflect.KProperty0
 
 private val AppOnDebug = (AppContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
@@ -81,88 +82,100 @@ private val AppOnDebug = (AppContext.applicationInfo.flags and ApplicationInfo.F
  */
 
 public abstract class KLog(
-    private val onDebug: Boolean,
     private val id: String,
+    private val onDebug: Boolean,
 ) {
-    public companion object : KLog(AppOnDebug, "KLOG")
+    public companion object : KLog("KLOG", AppOnDebug)
 
-    private fun log(
+    private fun Any?.toMsg(): String =
+        when(this){
+            is KProperty0<*> -> "${name}: ${get().toMsg()}"
+            is Array<*> ->  joinToString(prefix = "[", postfix = "]"){ it.toMsg() }
+            is ByteArray -> joinToString(prefix = "[", postfix = "]")
+            is ShortArray -> joinToString(prefix = "[", postfix = "]")
+            is IntArray -> joinToString(prefix = "[", postfix = "]")
+            is LongArray -> joinToString(prefix = "[", postfix = "]")
+            is FloatArray -> joinToString(prefix = "[", postfix = "]")
+            is DoubleArray -> joinToString(prefix = "[", postfix = "]")
+            is BooleanArray -> joinToString(prefix = "[", postfix = "]")
+            is CharArray -> joinToString(prefix = "[", postfix = "]")
+            else -> toString()
+        }
+
+    protected fun log(
         level: Int,
         tagPrefix: String?,
-        msg: Array<out Any?>,
+        obj: Any?,
         tr: Throwable?,
     ){
         when{
             onDebug -> {}
-            AppOnDebug -> if (level < Log.INFO) return
+            AppOnDebug -> if (level < Log.WARN) return
             else -> return
         }
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
-        val trace = "(${traceElement.fileName}:${traceElement.lineNumber})"
-
         val tag =
             listOfNotNull(
                 tagPrefix,
-                traceElement.fileName.substringBeforeLast("."),
-                id
+                "(${traceElement.fileName}:${traceElement.lineNumber})",
+                id,
             )
             .joinToString(" ")
 
-        val trTrace =  Log.getStackTraceString(tr)
+        val trTraceOnNewLine = Log.getStackTraceString(tr).updateIf({ it.any() }){ "\n" + it }
 
-        val msgWithTrace = msg.joinToString(postfix = " $trace")
-            .updateIf({ trTrace.any() }){ it + "\n" + trTrace }
+        val msgWithTrace = "${obj.toMsg()}$trTraceOnNewLine"
 
         Log.println(level, tag, msgWithTrace)
     }
 
-    public fun v(vararg msg: Any?){
-        log(Log.VERBOSE, null, msg, null)
+    public open fun v(obj: Any?){
+        log(Log.VERBOSE, null, obj, null)
     }
 
-    public fun v(vararg msg: Any?, tagPrefix: String){
-        log(Log.VERBOSE, tagPrefix, msg, null)
+    public open fun v(obj: Any?, tagPrefix: String){
+        log(Log.VERBOSE, tagPrefix, obj, null)
     }
 
-    public operator fun invoke(vararg msg: Any?){
-        log(Log.DEBUG, null, msg, null)
+    public fun d(obj: Any?){
+        log(Log.DEBUG, null, obj, null)
     }
 
-    public operator fun invoke(vararg msg: Any?, tagPrefix: String){
-        log(Log.DEBUG, tagPrefix, msg, null)
+    public fun d(obj: Any?, tagPrefix: String){
+        log(Log.DEBUG, tagPrefix, obj, null)
     }
 
-    public fun i(vararg msg: Any?){
-        log(Log.INFO, null, msg, null)
+    public fun i(obj: Any?){
+        log(Log.INFO, null, obj, null)
     }
 
-    public fun i(vararg msg: Any?, tagPrefix: String){
-        log(Log.INFO, tagPrefix, msg, null)
+    public fun i(obj: Any?, tagPrefix: String){
+        log(Log.INFO, tagPrefix, obj, null)
     }
 
-    public fun w(vararg msg: Any?){
-        log(Log.WARN, null, msg, null)
+    public fun w(obj: Any?){
+        log(Log.WARN, null, obj, null)
     }
 
-    public fun w(vararg msg: Any?, tagPrefix: String){
-        log(Log.WARN, tagPrefix, msg, null)
+    public fun w(obj: Any?, tagPrefix: String){
+        log(Log.WARN, tagPrefix, obj, null)
     }
 
-    public fun e(vararg msg: Any?){
-        log(Log.ERROR, null, msg, null)
+    public fun e(obj: Any?){
+        log(Log.ERROR, null, obj, null)
     }
 
-    public fun e(vararg msg: Any?, tagPrefix: String){
-        log(Log.ERROR, tagPrefix, msg, null)
+    public fun e(obj: Any?, tagPrefix: String){
+        log(Log.ERROR, tagPrefix, obj, null)
     }
 
-    public fun e(vararg msg: Any?, tr: Throwable){
-        log(Log.ERROR, null, msg, tr)
+    public fun e(obj: Any?, tr: Throwable){
+        log(Log.ERROR, null, obj, tr)
     }
 
-    public fun e(vararg msg: Any?, tagPrefix: String, tr: Throwable){
-        log(Log.ERROR, tagPrefix, msg, tr)
+    public fun e(obj: Any?, tagPrefix: String, tr: Throwable){
+        log(Log.ERROR, tagPrefix, obj, tr)
     }
 }
