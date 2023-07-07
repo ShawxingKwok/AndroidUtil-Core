@@ -17,6 +17,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "Android Util-core"
 include ':api'
-include ':db'
-include ':app'
-include ':lib'

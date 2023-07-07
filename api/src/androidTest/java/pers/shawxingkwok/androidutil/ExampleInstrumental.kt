@@ -20,12 +20,9 @@ class LogTest {
 
     @Test
     fun a() {
-        KLog("")
-
         object {
             init {
                 val tr = java.lang.Exception()
-                KLog("d")
                 KLog.i("i")
                 KLog.e("e")
                 KLog.e("et", tr = tr)
