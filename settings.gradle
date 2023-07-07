@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Android Util-core"
+rootProject.name = "AndroidUtil-Core"
 include ':api'
