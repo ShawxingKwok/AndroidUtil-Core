@@ -9,5 +9,4 @@ plugins {
     id 'com.android.library' version '7.4.1' apply false
     id 'org.jetbrains.kotlin.android' version "$version_kt" apply false
     id "com.vanniktech.maven.publish" version "0.25.2" apply false
-    id "org.jetbrains.dokka" version "1.7.20" apply false
 }

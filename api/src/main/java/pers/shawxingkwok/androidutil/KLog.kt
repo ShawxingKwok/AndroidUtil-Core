@@ -45,12 +45,19 @@ public abstract class KLog(
             else -> return
         }
 
-        val traceElement = Thread.currentThread().stackTrace[4]
+        val trace = Thread.currentThread().stackTrace
+        // stackTrace may be disturbed by `crossinline`
+        var i = 4
+        while ("$\$inlined" in trace[i].className){ i++ }
 
+        val traceElement = trace[i]
         val tag =
             listOfNotNull(
                 tagPrefix,
-                "(${traceElement.fileName}:${traceElement.lineNumber})",
+                if (i == 4)
+                    "(${traceElement.fileName}:${traceElement.lineNumber})"
+                else
+                    "(${traceElement.fileName})",
                 id,
             )
             .joinToString(" ")
