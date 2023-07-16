@@ -53,8 +53,16 @@ tasks.withType(KotlinCompile).configureEach{
 mavenPublishing {
     coordinates("io.github.shawxingkwok", "android-util-core", "1.0.0-SNAPSHOT")
     pom {
+        def repoName = "KDataStore"
         name = "Personal andorid util"
         description = "Contains only a log util at present."
         inceptionYear = "2023"
+
+        url = "https://github.com/ShawxingKwok/$repoName/"
+
+        scm{
+            connection = "scm:git:git://github.com/ShawxingKwok/${repoName}.git"
+            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${repoName}.git"
+        }
     }
 }
