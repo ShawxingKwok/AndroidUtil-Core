@@ -53,9 +53,9 @@ tasks.withType(KotlinCompile).configureEach{
 mavenPublishing {
     coordinates("io.github.shawxingkwok", "android-util-core", "1.0.0-SNAPSHOT")
     pom {
-        def repoName = "KDataStore"
+        def repoName = "AndroidUtil"
         name = "Personal andorid util"
-        description = "Contains only a log util at present."
+        description = ""
         inceptionYear = "2023"
 
         url = "https://github.com/ShawxingKwok/$repoName/"
