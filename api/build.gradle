@@ -53,16 +53,15 @@ tasks.withType(KotlinCompile).configureEach{
 mavenPublishing {
     coordinates("io.github.shawxingkwok", "android-util-core", "1.0.0-SNAPSHOT")
     pom {
-        def repoName = "AndroidUtil-Core"
-        name = "Personal andorid util"
-        description = ""
+        name = "AndroidUtil-Core"
+        description = "Personal andorid util"
         inceptionYear = "2023"
 
-        url = "https://github.com/ShawxingKwok/$repoName/"
+        url = "https://github.com/ShawxingKwok/$name/"
 
         scm{
-            connection = "scm:git:git://github.com/ShawxingKwok/${repoName}.git"
-            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${repoName}.git"
+            connection = "scm:git:git://github.com/ShawxingKwok/${name}.git"
+            developerConnection = "scm:git:ssh://git@github.com/ShawxingKwok/${name}.git"
         }
     }
 }
