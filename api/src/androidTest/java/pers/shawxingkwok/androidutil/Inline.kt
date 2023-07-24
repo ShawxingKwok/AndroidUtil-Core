@@ -1,7 +1,7 @@
 package pers.shawxingkwok.androidutil
 
 internal inline fun foo(block: () -> Unit){
-    KLog.d("", tagPrefix = "(Inline.kt)")
+    KLog.d("", "(Inline.kt)")
     block()
 }
 

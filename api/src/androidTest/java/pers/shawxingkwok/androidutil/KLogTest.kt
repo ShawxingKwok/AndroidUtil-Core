@@ -10,7 +10,7 @@ internal class KLogTest {
         }
 
         bar {
-            KLog.d("", tagPrefix = "(KLogTest.kt)") // crossinline blocks
+            KLog.d("", "(KLogTest.kt)") // crossinline blocks
         }
     }
 }
