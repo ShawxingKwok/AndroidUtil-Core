@@ -2,7 +2,6 @@ package pers.shawxingkwok.androidutil
 
 import android.content.Context
 import androidx.startup.Initializer
-import java.lang.Exception
 
 /**
  * It is the static applicationContext for you to get anywhere. In this way,
@@ -13,7 +12,7 @@ import java.lang.Exception
 public lateinit var AppContext: Context
     private set
 
-internal class MyInitializer : Initializer<Unit> {
+internal class AppContextInitializer : Initializer<Unit> {
     override fun create(context: Context) {
         AppContext = context
     }

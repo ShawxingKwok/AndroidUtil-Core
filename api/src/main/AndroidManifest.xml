@@ -9,7 +9,7 @@
                 android:exported="false"
                 tools:node="merge" >
             <meta-data
-                    android:name="pers.shawxingkwok.androidutil.MyInitializer"
+                    android:name="pers.shawxingkwok.androidutil.AppContextInitializer"
                     android:value="androidx.startup" />
         </provider>
     </application>
