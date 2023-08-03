@@ -1,3 +1,3 @@
 package pers.shawxingkwok.androidutil
 
-internal object MLog : KLog(BuildConfig.DEBUG, "KAUC")
+internal object MLog : KLog("KAUC", BuildConfig.DEBUG)

@@ -5,21 +5,16 @@ import android.util.Log
 import pers.shawxingkwok.ktutil.updateIf
 import kotlin.reflect.KProperty0
 
-private val AppOnDebug = run {
-    val context = AppContextInitializer.context ?: return@run true
-    context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-}
-
 /**
- * **See** [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-core/#klog)
+ * See [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-core/#klog).
  */
 public abstract class KLog(
-    private val onDebug: Boolean,
     private val id: String,
+    private val onDebug: Boolean,
 ) {
-    public companion object : KLog(AppOnDebug, "KLOG")
+    public companion object : KLog("KLOG", true)
 
-    public abstract class InApp(onDebug: Boolean, id: String) : KLog(onDebug, "$id APP")
+    public abstract class InApp(id: String, onDebug: Boolean) : KLog("$id APP", onDebug)
 
     private fun Any?.toMsg(): String =
         when(this){
@@ -42,11 +37,7 @@ public abstract class KLog(
         tagPrefix: String?,
         tr: Throwable?,
     ){
-        when{
-            onDebug -> {}
-            AppOnDebug -> if (level < Log.WARN) return
-            else -> return
-        }
+        if (!onDebug && level < Log.WARN) return
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
