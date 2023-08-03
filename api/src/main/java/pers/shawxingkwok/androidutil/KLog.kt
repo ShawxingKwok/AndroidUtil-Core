@@ -5,7 +5,10 @@ import android.util.Log
 import pers.shawxingkwok.ktutil.updateIf
 import kotlin.reflect.KProperty0
 
-private val AppOnDebug = (AppContext.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+private val AppOnDebug = run {
+    val context = AppContextInitializer.context ?: return@run true
+    context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+}
 
 /**
  * **See** [doc](https://shawxingkwok.github.io/ITWorks/docs/android/util-core/#klog)
