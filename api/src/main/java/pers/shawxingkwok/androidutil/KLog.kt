@@ -1,6 +1,5 @@
 package pers.shawxingkwok.androidutil
 
-import android.content.pm.ApplicationInfo
 import android.util.Log
 import pers.shawxingkwok.ktutil.updateIf
 import kotlin.reflect.KProperty0
