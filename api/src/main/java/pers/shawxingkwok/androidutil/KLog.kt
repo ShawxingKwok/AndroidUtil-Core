@@ -36,7 +36,7 @@ public abstract class KLog(
         tagPrefix: String?,
         tr: Throwable?,
     ){
-        if (!onDebug && level < Log.WARN) return
+        if (!onDebug && level < Log.INFO) return
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
