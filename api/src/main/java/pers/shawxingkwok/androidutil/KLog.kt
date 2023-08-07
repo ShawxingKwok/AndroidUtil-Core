@@ -9,7 +9,7 @@ import kotlin.reflect.KProperty0
  */
 public abstract class KLog(
     private val id: String,
-    private val onDebug: Boolean,
+    private val isDebug: Boolean,
 ) {
     public companion object : KLog("KLOG", true)
 
@@ -36,7 +36,7 @@ public abstract class KLog(
         tagPrefix: String?,
         tr: Throwable?,
     ){
-        if (!onDebug && level < Log.INFO) return
+        if (!isDebug && level < Log.INFO) return
 
         val traceElement = Thread.currentThread().stackTrace[4]
 
