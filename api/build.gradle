@@ -53,7 +53,7 @@ mavenPublishing {
     def version = "1.0.0"
     def isSnapshot = false
 
-    if (isSnapshot) version += "SNAPSHOT"
+    if (isSnapshot) version += "-SNAPSHOT"
     coordinates("io.github.shawxingkwok", artifactId, version)
     pom {
         name = "AndroidUtil-Core"
