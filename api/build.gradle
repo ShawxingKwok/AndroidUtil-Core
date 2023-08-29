@@ -35,7 +35,7 @@ android {
 
 dependencies {
     implementation 'androidx.core:core-ktx:1.10.1'
-    implementation 'io.github.shawxingkwok:kt-util:1.0.0'
+    implementation 'io.github.shawxingkwok:kt-util:1.0.2'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
@@ -50,7 +50,7 @@ tasks.withType(KotlinCompile).configureEach{
 // publish
 mavenPublishing {
     def artifactId = "android-util-core"
-    def version = "1.0.0"
+    def version = "1.0.1"
     def isSnapshot = false
 
     if (isSnapshot) version += "-SNAPSHOT"

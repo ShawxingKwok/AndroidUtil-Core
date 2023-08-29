@@ -9,7 +9,9 @@ internal class KLogTest {
     @Test
     fun start(){
         foo {
-            KLog.d("") // safe inline blocks
+            KLog.d(intArrayOf(1, 2, 3)) // safe inline blocks
+            KLog.d(arrayOf(2)) // safe inline blocks
+            KLog.d(listOf(1, 2)) // safe inline blocks
         }
 
         bar {

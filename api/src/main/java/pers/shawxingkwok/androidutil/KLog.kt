@@ -18,15 +18,15 @@ public abstract class KLog(
     private fun Any?.toMsg(): String =
         when(this){
             is KProperty0<*> -> "${name}: ${get().toMsg()}"
-            is Array<*> ->  joinToString(prefix = "[", postfix = "]"){ it.toMsg() }
-            is ByteArray -> joinToString(prefix = "[", postfix = "]")
-            is ShortArray -> joinToString(prefix = "[", postfix = "]")
-            is IntArray -> joinToString(prefix = "[", postfix = "]")
-            is LongArray -> joinToString(prefix = "[", postfix = "]")
-            is FloatArray -> joinToString(prefix = "[", postfix = "]")
-            is DoubleArray -> joinToString(prefix = "[", postfix = "]")
-            is BooleanArray -> joinToString(prefix = "[", postfix = "]")
-            is CharArray -> joinToString(prefix = "[", postfix = "]")
+            is Array<*> ->  joinToString(prefix = "[]{", postfix = "}"){ it.toMsg() }
+            is ByteArray -> joinToString(prefix = "[]{", postfix = "}")
+            is ShortArray -> joinToString(prefix = "[]{", postfix = "}")
+            is IntArray -> joinToString(prefix = "[]{", postfix = "}")
+            is LongArray -> joinToString(prefix = "[]{", postfix = "}")
+            is FloatArray -> joinToString(prefix = "[]{", postfix = "}")
+            is DoubleArray -> joinToString(prefix = "[]{", postfix = "}")
+            is BooleanArray -> joinToString(prefix = "[]{", postfix = "}")
+            is CharArray -> joinToString(prefix = "[]{", postfix = "}")
             else -> toString()
         }
 
